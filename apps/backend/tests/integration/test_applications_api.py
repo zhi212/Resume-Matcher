@@ -145,6 +145,28 @@ class TestUpdateAndMove:
         assert body["notes"] == "Recruiter call Friday"
         assert body["company"] == "NewCo"
 
+    async def test_patch_interview_time_persists_across_moves(self, isolated_db):
+        card = await _seed_card(isolated_db, status="interview")
+        interview_at = "2026-03-20T10:30:00+08:00"
+        async with _client() as client:
+            resp = await client.patch(
+                f"/api/v1/applications/{card['application_id']}",
+                json={"interview_at": interview_at},
+            )
+            assert resp.status_code == 200
+            assert resp.json()["interview_at"] == interview_at
+
+            detail = await client.get(f"/api/v1/applications/{card['application_id']}")
+            assert detail.status_code == 200
+            assert detail.json()["interview_at"] == interview_at
+
+            moved = await client.patch(
+                f"/api/v1/applications/{card['application_id']}",
+                json={"status": "applied"},
+            )
+            assert moved.status_code == 200
+            assert moved.json()["interview_at"] == interview_at
+
     async def test_patch_unknown_returns_404(self, isolated_db):
         async with _client() as client:
             resp = await client.patch("/api/v1/applications/nope", json={"notes": "x"})

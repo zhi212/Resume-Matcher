@@ -6,6 +6,10 @@ const DEFAULT_OPTIONS: Intl.DateTimeFormatOptions = {
 
 const DATE_ONLY = /^(\d{4})-(\d{2})-(\d{2})$/;
 
+function pad(value: number): string {
+  return String(value).padStart(2, '0');
+}
+
 /** `new Date('2025-01-02')` is UTC midnight, which reads as Jan 1 west of UTC: a bare date is a calendar day, so build it locally. */
 function toDate(value: string | number | Date): Date {
   if (typeof value === 'string') {
@@ -42,4 +46,21 @@ export function formatDate(
   const date = toDate(value);
   if (Number.isNaN(date.getTime())) return '';
   return formatterFor(locale, options).format(date);
+}
+
+/** Convert a stored ISO timestamp to the local value accepted by `datetime-local`. */
+export function toDateTimeLocalValue(value: string | null | undefined): string {
+  if (!value) return '';
+  const date = toDate(value);
+  if (Number.isNaN(date.getTime())) return '';
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(
+    date.getHours()
+  )}:${pad(date.getMinutes())}`;
+}
+
+/** Convert a `datetime-local` value to the UTC ISO string persisted by the API. */
+export function fromDateTimeLocalValue(value: string): string | null {
+  if (!value) return null;
+  const date = toDate(value);
+  return Number.isNaN(date.getTime()) ? null : date.toISOString();
 }
