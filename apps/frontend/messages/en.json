@@ -1464,6 +1464,20 @@
       "selectAria": "Select application",
       "dragAria": "Drag to reorder"
     },
+    "interviewQuestions": {
+      "button": "Interview Questions",
+      "title": "Interview Questions",
+      "description": "Review questions recorded across your applications.",
+      "listLabel": "Recorded interview questions",
+      "questionLabel": "Interview question",
+      "questionPlaceholder": "Record a question you were asked…",
+      "submit": "Add question",
+      "empty": "No interview questions yet",
+      "emptyDescription": "Open an application and record a question you were asked.",
+      "loadFailed": "Could not load interview questions.",
+      "createFailed": "Could not add the interview question.",
+      "validation": "Enter a question."
+    },
     "modal": {
       "jobDescription": "Job Description",
       "noJobDescription": "No job description on file.",

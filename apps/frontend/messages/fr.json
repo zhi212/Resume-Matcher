@@ -1464,6 +1464,20 @@
       "selectAria": "Sélectionner la candidature",
       "dragAria": "Faire glisser pour réorganiser"
     },
+    "interviewQuestions": {
+      "button": "Questions",
+      "title": "Questions d'entretien",
+      "description": "Consultez les questions enregistrées pour vos candidatures.",
+      "listLabel": "Questions d'entretien enregistrées",
+      "questionLabel": "Question d'entretien",
+      "questionPlaceholder": "Enregistrez une question qui vous a été posée…",
+      "submit": "Ajouter la question",
+      "empty": "Aucune question pour le moment",
+      "emptyDescription": "Ouvrez une candidature et enregistrez une question posée.",
+      "loadFailed": "Impossible de charger les questions.",
+      "createFailed": "Impossible d'ajouter la question.",
+      "validation": "Saisissez une question."
+    },
     "modal": {
       "jobDescription": "Fiche de poste",
       "noJobDescription": "Aucune fiche de poste enregistrée.",

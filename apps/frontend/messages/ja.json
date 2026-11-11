@@ -1464,6 +1464,20 @@
       "selectAria": "応募を選択",
       "dragAria": "ドラッグして並べ替え"
     },
+    "interviewQuestions": {
+      "button": "面接質問",
+      "title": "面接質問の記録",
+      "description": "応募ごとに記録した面接質問をまとめて確認できます。",
+      "listLabel": "記録済みの面接質問",
+      "questionLabel": "面接質問",
+      "questionPlaceholder": "実際に聞かれた質問を記録…",
+      "submit": "質問を追加",
+      "empty": "面接質問はまだありません",
+      "emptyDescription": "応募を開き、実際に聞かれた質問を記録してください。",
+      "loadFailed": "面接質問を読み込めませんでした。",
+      "createFailed": "面接質問を追加できませんでした。",
+      "validation": "質問を入力してください。"
+    },
     "modal": {
       "jobDescription": "求人内容",
       "noJobDescription": "求人内容はありません。",

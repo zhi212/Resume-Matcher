@@ -1464,6 +1464,20 @@
       "selectAria": "Seleccionar candidatura",
       "dragAria": "Arrastra para reordenar"
     },
+    "interviewQuestions": {
+      "button": "Preguntas",
+      "title": "Preguntas de entrevista",
+      "description": "Revisa las preguntas registradas en tus candidaturas.",
+      "listLabel": "Preguntas de entrevista registradas",
+      "questionLabel": "Pregunta de entrevista",
+      "questionPlaceholder": "Registra una pregunta que te hicieron…",
+      "submit": "Añadir pregunta",
+      "empty": "Aún no hay preguntas",
+      "emptyDescription": "Abre una candidatura y registra una pregunta que te hicieron.",
+      "loadFailed": "No se pudieron cargar las preguntas.",
+      "createFailed": "No se pudo añadir la pregunta.",
+      "validation": "Escribe una pregunta."
+    },
     "modal": {
       "jobDescription": "Descripción del empleo",
       "noJobDescription": "No hay descripción del empleo.",

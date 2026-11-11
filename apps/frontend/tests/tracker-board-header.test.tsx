@@ -70,9 +70,13 @@ describe('KanbanBoard header', () => {
     expect(band).toContainElement(back);
 
     // Every control in the band is h-8, so the band height never changes.
+    const interviewQuestions = screen.getByRole('button', {
+      name: 'tracker.interviewQuestions.button',
+    });
     const manage = screen.getByRole('button', { name: 'tracker.manage' });
     const add = screen.getByRole('button', { name: 'tracker.addApplication' });
     expect(band).toContainElement(add);
+    expect(interviewQuestions).toHaveClass('h-8');
     expect(manage).toHaveClass('h-8');
     expect(add).toHaveClass('h-8');
     // Actions stay right-aligned when they wrap onto their own row.

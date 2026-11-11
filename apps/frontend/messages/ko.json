@@ -1464,6 +1464,20 @@
       "selectAria": "지원 선택",
       "dragAria": "드래그하여 순서 변경"
     },
+    "interviewQuestions": {
+      "button": "면접 질문",
+      "title": "면접 질문 기록",
+      "description": "지원 건별로 기록한 면접 질문을 한곳에서 확인하세요.",
+      "listLabel": "기록된 면접 질문",
+      "questionLabel": "면접 질문",
+      "questionPlaceholder": "실제로 받은 질문을 기록하세요…",
+      "submit": "질문 추가",
+      "empty": "아직 면접 질문이 없습니다",
+      "emptyDescription": "지원 건을 열어 실제로 받은 질문을 기록하세요.",
+      "loadFailed": "면접 질문을 불러오지 못했습니다.",
+      "createFailed": "면접 질문을 추가하지 못했습니다.",
+      "validation": "질문을 입력하세요."
+    },
     "modal": {
       "jobDescription": "채용 공고",
       "noJobDescription": "등록된 채용 공고가 없습니다.",

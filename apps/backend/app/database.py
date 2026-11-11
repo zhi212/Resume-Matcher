@@ -38,6 +38,7 @@ from app.models import (
     ApiKey,
     Application,
     Improvement,
+    InterviewQuestion,
     Job,
     QueueItem,
     Resume,
@@ -300,6 +301,20 @@ class Database:
             "position": row.position,
             "created_at": row.created_at,
             "updated_at": row.updated_at,
+        }
+
+    @staticmethod
+    def _interview_question_to_dict(
+        row: InterviewQuestion,
+        company: str | None,
+        role: str | None,
+    ) -> dict[str, Any]:
+        return {
+            "question_id": row.question_id,
+            "application_id": row.application_id,
+            "company": company,
+            "role": role,
+            "question": row.question,
         }
 
     @staticmethod
@@ -1446,6 +1461,58 @@ class Database:
             await session.commit()
         return deleted
 
+    async def create_interview_question(
+        self, application_id: str, question: str
+    ) -> dict[str, Any] | None:
+        """Create a question for an existing application.
+
+        Returns ``None`` when the application no longer exists so the router can
+        preserve its existing 404 contract.
+        """
+        async with self._write_session() as session:
+            application = await session.get(Application, application_id)
+            if application is None:
+                return None
+            row = InterviewQuestion(
+                question_id=str(uuid4()),
+                application_id=application_id,
+                question=question,
+                created_at=_now(),
+            )
+            session.add(row)
+            await session.commit()
+            return self._interview_question_to_dict(
+                row, application.company, application.role
+            )
+
+    async def list_interview_questions(
+        self, application_id: str | None = None
+    ) -> list[dict[str, Any]]:
+        """List recorded questions newest-first, optionally for one application."""
+        async with self._session() as session:
+            stmt = (
+                select(
+                    InterviewQuestion,
+                    Application.company,
+                    Application.role,
+                )
+                .join(
+                    Application,
+                    Application.application_id == InterviewQuestion.application_id,
+                )
+                .order_by(
+                    InterviewQuestion.created_at.desc(),
+                    InterviewQuestion.question_id.desc(),
+                )
+            )
+            if application_id is not None:
+                stmt = stmt.where(InterviewQuestion.application_id == application_id)
+            result = await session.execute(stmt)
+            return [
+                self._interview_question_to_dict(row, company, role)
+                for row, company, role in result.all()
+            ]
+
     # -- Encrypted API key store (sync; read on the LLM hot path) -----------
 
     def get_api_key_ciphertexts(self) -> dict[str, str]:
@@ -1536,6 +1603,7 @@ class Database:
             async with self._write_session() as session:
                 await session.execute(delete(QueueItem))
                 await session.execute(delete(TailoringPreview))
+                await session.execute(delete(InterviewQuestion))
                 await session.execute(delete(Application))
                 await session.execute(delete(Improvement))
                 await session.execute(delete(Job))
