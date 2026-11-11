@@ -40,6 +40,19 @@ export interface ApplicationDetail extends Application {
   job_content: string | null;
   // The applied/tailored resume record (null when it has been deleted).
   resume: Record<string, unknown> | null;
+  interview_questions: TrackerInterviewQuestion[];
+}
+
+export interface TrackerInterviewQuestion {
+  question_id: string;
+  application_id: string;
+  company: string | null;
+  role: string | null;
+  question: string;
+}
+
+export interface InterviewQuestionListResponse {
+  questions: TrackerInterviewQuestion[];
 }
 
 export type ApplicationColumns = Record<ApplicationStatus, Application[]>;
@@ -132,6 +145,36 @@ export async function updateApplication(
 ): Promise<Application> {
   const res = await apiPatch(`/applications/${id}`, payload);
   return asJson<Application>(res, 'Failed to update application');
+}
+
+// Record a manually entered interview question for one application.
+export async function addInterviewQuestion(
+  applicationId: string,
+  question: string
+): Promise<TrackerInterviewQuestion> {
+  const res = await apiPost(
+    `/applications/${encodeURIComponent(applicationId)}/interview-questions`,
+    { question }
+  );
+  return asJson<TrackerInterviewQuestion>(res, 'Failed to add interview question');
+}
+
+export async function deleteInterviewQuestion(
+  applicationId: string,
+  questionId: string
+): Promise<ApplicationActionResponse> {
+  const res = await apiDelete(
+    `/applications/${encodeURIComponent(applicationId)}/interview-questions/${encodeURIComponent(questionId)}`
+  );
+  return asJson<ApplicationActionResponse>(res, 'Failed to delete interview question');
+}
+
+// List every recorded interview question, independent of visible board columns.
+export async function listInterviewQuestions(): Promise<InterviewQuestionListResponse> {
+  const res = await apiFetch('/applications/interview-questions', {
+    credentials: 'include',
+  });
+  return asJson<InterviewQuestionListResponse>(res, 'Failed to load interview questions');
 }
 
 // Move many cards to one column.

@@ -41,6 +41,16 @@ class ApplicationResponse(BaseModel):
     updated_at: str
 
 
+class InterviewQuestionResponse(BaseModel):
+    """A question joined with its application's current company and role."""
+
+    question_id: str
+    application_id: str
+    company: str | None = None
+    role: str | None = None
+    question: str
+
+
 class ApplicationDetailResponse(ApplicationResponse):
     """A card plus the embedded job description and applied resume.
 
@@ -50,6 +60,7 @@ class ApplicationDetailResponse(ApplicationResponse):
 
     job_content: str | None = None
     resume: dict[str, Any] | None = None
+    interview_questions: list[InterviewQuestionResponse] = Field(default_factory=list)
 
 
 class ApplicationListResponse(BaseModel):
@@ -105,6 +116,26 @@ class BulkDelete(BaseModel):
     """Delete many cards."""
 
     application_ids: list[str] = Field(min_length=1)
+
+
+class InterviewQuestionCreate(BaseModel):
+    """A manually entered interview question."""
+
+    question: str = Field(min_length=1, max_length=5000)
+
+    @field_validator("question")
+    @classmethod
+    def strip_question(cls, value: str) -> str:
+        cleaned = value.strip()
+        if not cleaned:
+            raise ValueError("Question cannot be blank")
+        return cleaned
+
+
+class InterviewQuestionListResponse(BaseModel):
+    """All recorded interview questions across applications."""
+
+    questions: list[InterviewQuestionResponse]
 
 
 class ApplicationActionResponse(BaseModel):

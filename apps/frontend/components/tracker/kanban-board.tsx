@@ -13,7 +13,15 @@ import {
 } from '@dnd-kit/core';
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import { useReducedMotion } from 'motion/react';
-import { ArrowLeft, Plus, Gear, SpinnerGap, CaretLeft, CaretRight } from '@phosphor-icons/react';
+import {
+  ArrowLeft,
+  Plus,
+  Gear,
+  SpinnerGap,
+  CaretLeft,
+  CaretRight,
+  ChatCircleText,
+} from '@phosphor-icons/react';
 import { Button, buttonClass } from '@/components/ui/button';
 import { Alert } from '@/components/ui/alert';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -32,6 +40,7 @@ import { KanbanColumn } from './kanban-column';
 import { BulkActionBar } from './bulk-action-bar';
 import { CardDetailModal } from './card-detail-modal';
 import { ManualAddApplicationDialog } from './manual-add-application-dialog';
+import { InterviewQuestionsDialog } from './interview-questions-dialog';
 import { planMove } from './reorder';
 import { ManageColumnsDialog } from './manage-columns-dialog';
 import {
@@ -62,6 +71,7 @@ export function KanbanBoard() {
   const [openCardId, setOpenCardId] = useState<string | null>(null);
   const [manualAddOpen, setManualAddOpen] = useState(false);
   const [manageOpen, setManageOpen] = useState(false);
+  const [interviewQuestionsOpen, setInterviewQuestionsOpen] = useState(false);
   const [hiddenStatuses, setHiddenStatuses] = useState<Set<ApplicationStatus>>(() =>
     readHiddenStatuses()
   );
@@ -237,6 +247,15 @@ export function KanbanBoard() {
           </p>
         </div>
         <div className="ml-auto flex flex-wrap items-center gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setInterviewQuestionsOpen(true)}
+          >
+            <ChatCircleText aria-hidden="true" />
+            {t('tracker.interviewQuestions.button')}
+          </Button>
           <Button type="button" variant="outline" size="sm" onClick={() => setManageOpen(true)}>
             <Gear aria-hidden="true" />
             {t('tracker.manage')}
@@ -379,6 +398,11 @@ export function KanbanBoard() {
         onOpenChange={setManageOpen}
         hiddenStatuses={hiddenStatuses}
         onToggle={handleToggleStatus}
+      />
+
+      <InterviewQuestionsDialog
+        open={interviewQuestionsOpen}
+        onOpenChange={setInterviewQuestionsOpen}
       />
     </div>
   );

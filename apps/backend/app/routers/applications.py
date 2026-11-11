@@ -15,6 +15,9 @@ from app.schemas import (
     ApplicationUpdate,
     BulkDelete,
     BulkStatusUpdate,
+    InterviewQuestionCreate,
+    InterviewQuestionListResponse,
+    InterviewQuestionResponse,
     ManualApplicationCreate,
 )
 from app.services.improver import extract_job_keywords
@@ -95,6 +98,82 @@ async def create_application(request: ManualApplicationCreate) -> ApplicationRes
     return ApplicationResponse(**application)
 
 
+@router.get(
+    "/interview-questions",
+    response_model=InterviewQuestionListResponse,
+)
+async def list_interview_questions() -> InterviewQuestionListResponse:
+    """List every recorded interview question across all applications."""
+    try:
+        questions = await db.list_interview_questions()
+    except DatabaseBusyError:
+        raise
+    except Exception as e:
+        logger.error("Failed to list interview questions: %s", e)
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to load interview questions. Please try again.",
+        )
+    return InterviewQuestionListResponse(
+        questions=[InterviewQuestionResponse(**item) for item in questions]
+    )
+
+
+@router.post(
+    "/{application_id}/interview-questions",
+    response_model=InterviewQuestionResponse,
+)
+async def create_interview_question(
+    application_id: str, request: InterviewQuestionCreate
+) -> InterviewQuestionResponse:
+    """Record a question for one application."""
+    try:
+        question = await db.create_interview_question(application_id, request.question)
+    except DatabaseBusyError:
+        raise
+    except Exception as e:
+        logger.error(
+            "Failed to create interview question for %s: %s",
+            application_id,
+            e,
+        )
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to add interview question. Please try again.",
+        )
+    if question is None:
+        raise HTTPException(status_code=404, detail="Application not found")
+    return InterviewQuestionResponse(**question)
+
+
+@router.delete(
+    "/{application_id}/interview-questions/{question_id}",
+    response_model=ApplicationActionResponse,
+)
+async def delete_interview_question(
+    application_id: str, question_id: str
+) -> ApplicationActionResponse:
+    """Delete one recorded question from an application."""
+    try:
+        deleted = await db.delete_interview_question(application_id, question_id)
+    except DatabaseBusyError:
+        raise
+    except Exception as e:
+        logger.error(
+            "Failed to delete interview question %s for %s: %s",
+            question_id,
+            application_id,
+            e,
+        )
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to delete interview question. Please try again.",
+        )
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Interview question not found")
+    return ApplicationActionResponse(message="Interview question deleted", affected=1)
+
+
 @router.get("/{application_id}", response_model=ApplicationDetailResponse)
 async def get_application_detail(application_id: str) -> ApplicationDetailResponse:
     """Get a card with its embedded JD and applied resume (one round-trip).
@@ -107,11 +186,13 @@ async def get_application_detail(application_id: str) -> ApplicationDetailRespon
 
     job_content: str | None = None
     resume: dict[str, Any] | None = None
+    interview_questions: list[dict[str, Any]] = []
     try:
         job = await db.get_job(application["job_id"])
         if job:
             job_content = job.get("content")
         resume = await db.get_resume(application["resume_id"])
+        interview_questions = await db.list_interview_questions(application_id)
     except DatabaseBusyError:
         raise
     except Exception as e:
@@ -119,7 +200,12 @@ async def get_application_detail(application_id: str) -> ApplicationDetailRespon
         logger.warning("Failed to load detail context for %s: %s", application_id, e)
 
     return ApplicationDetailResponse(
-        **application, job_content=job_content, resume=resume
+        **application,
+        job_content=job_content,
+        resume=resume,
+        interview_questions=[
+            InterviewQuestionResponse(**item) for item in interview_questions
+        ],
     )
 
 

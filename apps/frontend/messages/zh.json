@@ -1465,6 +1465,22 @@
       "selectAria": "选择申请",
       "dragAria": "拖动以重新排序"
     },
+    "interviewQuestions": {
+      "button": "面试题",
+      "title": "面试题记录",
+      "description": "统一查看各条申请中记录过的面试题。",
+      "listLabel": "已记录的面试题",
+      "questionLabel": "面试题",
+      "questionPlaceholder": "记录一道实际遇到的面试题……",
+      "submit": "添加面试题",
+      "delete": "删除",
+      "empty": "暂无面试题",
+      "emptyDescription": "打开一条申请记录，添加实际遇到的面试题。",
+      "loadFailed": "无法加载面试题。",
+      "createFailed": "无法添加该面试题。",
+      "deleteFailed": "无法删除该面试题。",
+      "validation": "请输入面试题。"
+    },
     "modal": {
       "jobDescription": "职位描述",
       "noJobDescription": "没有职位描述。",

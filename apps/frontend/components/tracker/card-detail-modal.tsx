@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { SpinnerGap, PencilSimple } from '@phosphor-icons/react';
+import { SpinnerGap, PencilSimple, Plus, Trash } from '@phosphor-icons/react';
 import {
   Dialog,
   DialogBody,
@@ -17,10 +17,17 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Alert } from '@/components/ui/alert';
+import { EmptyState } from '@/components/ui/empty-state';
 import { StatusIndicator } from '@/components/ui/status-indicator';
 import { useTranslations } from '@/lib/i18n';
 import { formatDate, fromDateTimeLocalValue, toDateTimeLocalValue } from '@/lib/format-date';
-import { getApplicationDetail, updateApplication, type ApplicationDetail } from '@/lib/api/tracker';
+import {
+  addInterviewQuestion,
+  deleteInterviewQuestion,
+  getApplicationDetail,
+  updateApplication,
+  type ApplicationDetail,
+} from '@/lib/api/tracker';
 
 interface CardDetailModalProps {
   applicationId: string | null;
@@ -42,6 +49,10 @@ export function CardDetailModal({
   const [notes, setNotes] = useState('');
   const [savingNotes, setSavingNotes] = useState(false);
   const [notesError, setNotesError] = useState<string | null>(null);
+  const [questionDraft, setQuestionDraft] = useState('');
+  const [savingQuestion, setSavingQuestion] = useState(false);
+  const [deletingQuestionId, setDeletingQuestionId] = useState<string | null>(null);
+  const [questionError, setQuestionError] = useState<string | null>(null);
   const [interviewTime, setInterviewTime] = useState('');
   const [savingInterviewTime, setSavingInterviewTime] = useState(false);
   const [interviewTimeError, setInterviewTimeError] = useState<string | null>(null);
@@ -49,6 +60,11 @@ export function CardDetailModal({
   useEffect(() => {
     if (!open || !applicationId) {
       setDetail(null);
+      setQuestionDraft('');
+      setQuestionError(null);
+      setDeletingQuestionId(null);
+      setInterviewTime('');
+      setInterviewTimeError(null);
       return;
     }
     let cancelled = false;
@@ -59,6 +75,9 @@ export function CardDetailModal({
         setDetail(data);
         setNotes(data.notes ?? '');
         setNotesError(null);
+        setQuestionDraft('');
+        setQuestionError(null);
+        setDeletingQuestionId(null);
         setInterviewTime(toDateTimeLocalValue(data.interview_at));
         setInterviewTimeError(null);
       })
@@ -94,6 +113,56 @@ export function CardDetailModal({
     }
   };
 
+  const handleAddQuestion = async () => {
+    if (!applicationId) return;
+    const question = questionDraft.trim();
+    if (!question) {
+      setQuestionError(t('tracker.interviewQuestions.validation'));
+      return;
+    }
+    setSavingQuestion(true);
+    setQuestionError(null);
+    try {
+      const created = await addInterviewQuestion(applicationId, question);
+      setDetail((current) =>
+        current
+          ? {
+              ...current,
+              interview_questions: [created, ...(current.interview_questions ?? [])],
+            }
+          : current
+      );
+      setQuestionDraft('');
+    } catch {
+      setQuestionError(t('tracker.interviewQuestions.createFailed'));
+    } finally {
+      setSavingQuestion(false);
+    }
+  };
+
+  const handleDeleteQuestion = async (questionId: string) => {
+    if (!applicationId) return;
+    setDeletingQuestionId(questionId);
+    setQuestionError(null);
+    try {
+      await deleteInterviewQuestion(applicationId, questionId);
+      setDetail((current) =>
+        current
+          ? {
+              ...current,
+              interview_questions: (current.interview_questions ?? []).filter(
+                (item) => item.question_id !== questionId
+              ),
+            }
+          : current
+      );
+    } catch {
+      setQuestionError(t('tracker.interviewQuestions.deleteFailed'));
+    } finally {
+      setDeletingQuestionId(null);
+    }
+  };
+
   const handleSaveInterviewTime = async () => {
     if (!applicationId) return;
     setSavingInterviewTime(true);
@@ -112,6 +181,7 @@ export function CardDetailModal({
   };
 
   const resumeAvailable = Boolean(detail?.resume);
+  const interviewQuestions = detail?.interview_questions ?? [];
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -176,6 +246,78 @@ export function CardDetailModal({
                 <div className="max-h-48 overflow-y-auto whitespace-pre-wrap border border-ink bg-canvas p-3 text-sm">
                   {detail.job_content || t('tracker.modal.noJobDescription')}
                 </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="card-interview-question">
+                  {t('tracker.interviewQuestions.questionLabel')}
+                </Label>
+                <Textarea
+                  id="card-interview-question"
+                  value={questionDraft}
+                  onChange={(e) => {
+                    setQuestionDraft(e.target.value);
+                    setQuestionError(null);
+                  }}
+                  onKeyDown={handleNotesKeyDown}
+                  placeholder={t('tracker.interviewQuestions.questionPlaceholder')}
+                  rows={3}
+                  maxLength={5000}
+                  aria-invalid={Boolean(questionError)}
+                />
+                {questionError && <Alert tone="error">{questionError}</Alert>}
+                <div className="flex justify-end">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={handleAddQuestion}
+                    disabled={savingQuestion}
+                  >
+                    {savingQuestion ? (
+                      <>
+                        <SpinnerGap aria-hidden="true" className="animate-spin" />
+                        {t('common.saving')}
+                      </>
+                    ) : (
+                      <>
+                        <Plus aria-hidden="true" />
+                        {t('tracker.interviewQuestions.submit')}
+                      </>
+                    )}
+                  </Button>
+                </div>
+
+                {interviewQuestions.length === 0 ? (
+                  <EmptyState title={t('tracker.interviewQuestions.empty')} />
+                ) : (
+                  <ul className="space-y-2" aria-label={t('tracker.interviewQuestions.listLabel')}>
+                    {interviewQuestions.map((item) => (
+                      <li
+                        key={item.question_id}
+                        className="border border-ink bg-paper p-3 text-sm text-ink-soft shadow-sw-nested"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <p className="min-w-0 whitespace-pre-wrap">{item.question}</p>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline-destructive"
+                            onClick={() => handleDeleteQuestion(item.question_id)}
+                            disabled={deletingQuestionId === item.question_id}
+                          >
+                            {deletingQuestionId === item.question_id ? (
+                              <SpinnerGap aria-hidden="true" className="animate-spin" />
+                            ) : (
+                              <Trash aria-hidden="true" />
+                            )}
+                            {t('tracker.interviewQuestions.delete')}
+                          </Button>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
 
               <div className="space-y-1">

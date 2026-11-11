@@ -10,6 +10,9 @@ from app.schemas.applications import (
     ApplicationUpdate,
     BulkDelete,
     BulkStatusUpdate,
+    InterviewQuestionCreate,
+    InterviewQuestionListResponse,
+    InterviewQuestionResponse,
     ManualApplicationCreate,
 )
 from app.schemas.models import (
@@ -160,4 +163,7 @@ __all__ = [
     "BulkStatusUpdate",
     "BulkDelete",
     "ApplicationActionResponse",
+    "InterviewQuestionCreate",
+    "InterviewQuestionResponse",
+    "InterviewQuestionListResponse",
 ]

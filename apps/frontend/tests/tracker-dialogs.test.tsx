@@ -3,7 +3,9 @@ import { describe, expect, it, vi } from 'vitest';
 import { CardDetailModal } from '@/components/tracker/card-detail-modal';
 import { ManualAddApplicationDialog } from '@/components/tracker/manual-add-application-dialog';
 import {
+  addInterviewQuestion,
   createApplication,
+  deleteInterviewQuestion,
   getApplicationDetail,
   updateApplication,
   type ApplicationDetail,
@@ -18,6 +20,8 @@ vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn() }) }));
 vi.mock('@/lib/api/tracker', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/lib/api/tracker')>()),
   getApplicationDetail: vi.fn(),
+  addInterviewQuestion: vi.fn(),
+  deleteInterviewQuestion: vi.fn(),
   createApplication: vi.fn(),
   updateApplication: vi.fn(),
 }));
@@ -50,6 +54,7 @@ const detail: ApplicationDetail = {
   updated_at: '2026-01-01T00:00:00Z',
   job_content: 'Build things.',
   resume: null,
+  interview_questions: [],
 };
 
 describe('ManualAddApplicationDialog', () => {
@@ -135,6 +140,72 @@ describe('CardDetailModal', () => {
     );
     expect(screen.getByText(expected)).toBeInTheDocument();
     expect(screen.getByRole('alert')).toHaveTextContent('tracker.modal.resumeUnavailable');
+  });
+
+  it('adds a question and shows it in the current application', async () => {
+    vi.mocked(getApplicationDetail).mockResolvedValue(detail);
+    vi.mocked(addInterviewQuestion).mockResolvedValue({
+      question_id: 'q1',
+      application_id: 'a1',
+      company: 'ACME',
+      role: 'Engineer',
+      question: 'Tell me about a conflict.',
+    });
+    render(<CardDetailModal applicationId="a1" open onOpenChange={vi.fn()} onUpdated={vi.fn()} />);
+
+    const field = await screen.findByRole('textbox', {
+      name: 'tracker.interviewQuestions.questionLabel',
+    });
+    fireEvent.change(field, { target: { value: 'Tell me about a conflict.' } });
+    fireEvent.click(screen.getByRole('button', { name: 'tracker.interviewQuestions.submit' }));
+
+    expect(addInterviewQuestion).toHaveBeenCalledWith('a1', 'Tell me about a conflict.');
+    expect(await screen.findByText('Tell me about a conflict.')).toBeInTheDocument();
+    expect(field).toHaveValue('');
+  });
+
+  it('rejects a blank question before calling the API', async () => {
+    vi.mocked(addInterviewQuestion).mockClear();
+    vi.mocked(getApplicationDetail).mockResolvedValue(detail);
+    render(<CardDetailModal applicationId="a1" open onOpenChange={vi.fn()} onUpdated={vi.fn()} />);
+
+    fireEvent.click(
+      await screen.findByRole('button', {
+        name: 'tracker.interviewQuestions.submit',
+      })
+    );
+
+    expect(addInterviewQuestion).not.toHaveBeenCalled();
+    expect(screen.getByText('tracker.interviewQuestions.validation')).toBeInTheDocument();
+  });
+
+  it('deletes a recorded question from the current application', async () => {
+    vi.mocked(getApplicationDetail).mockResolvedValue({
+      ...detail,
+      interview_questions: [
+        {
+          question_id: 'q1',
+          application_id: 'a1',
+          company: 'ACME',
+          role: 'Engineer',
+          question: 'Tell me about a conflict.',
+        },
+      ],
+    });
+    vi.mocked(deleteInterviewQuestion).mockResolvedValue({
+      message: 'deleted',
+      affected: 1,
+    });
+    render(<CardDetailModal applicationId="a1" open onOpenChange={vi.fn()} onUpdated={vi.fn()} />);
+
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'tracker.interviewQuestions.delete' })
+    );
+
+    await waitFor(() => expect(deleteInterviewQuestion).toHaveBeenCalledWith('a1', 'q1'));
+    await waitFor(() =>
+      expect(screen.queryByText('Tell me about a conflict.')).not.toBeInTheDocument()
+    );
   });
 
   it('saves the interview time through the existing partial update API', async () => {

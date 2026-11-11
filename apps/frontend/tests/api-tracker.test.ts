@@ -1,9 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
+  addInterviewQuestion,
   bulkUpdateStatus,
   bulkDeleteApplications,
   createApplication,
   deleteApplication,
+  deleteInterviewQuestion,
+  listInterviewQuestions,
   updateApplication,
 } from '@/lib/api/tracker';
 import { llmProviderToKeyProvider } from '@/lib/api/config';
@@ -72,6 +75,35 @@ describe('tracker API client', () => {
       position: 0,
       interview_at: '2026-03-20T02:30:00.000Z',
     });
+  });
+
+  it('addInterviewQuestion POSTs to the nested application route', async () => {
+    fetchMock.mockResolvedValue(
+      new Response(JSON.stringify({ question_id: 'q1' }), { status: 200 })
+    );
+    await addInterviewQuestion('a1', 'Why this role?');
+    const { url, options } = lastCall();
+    expect(url).toContain('/applications/a1/interview-questions');
+    expect(options.method).toBe('POST');
+    expect(JSON.parse(String(options.body))).toEqual({ question: 'Why this role?' });
+  });
+
+  it('listInterviewQuestions GETs the global question list', async () => {
+    fetchMock.mockResolvedValue(new Response(JSON.stringify({ questions: [] }), { status: 200 }));
+    await listInterviewQuestions();
+    const { url, options } = lastCall();
+    expect(url).toContain('/applications/interview-questions');
+    expect(options.method).toBeUndefined();
+  });
+
+  it('deleteInterviewQuestion DELETEs the nested question route', async () => {
+    fetchMock.mockResolvedValue(
+      new Response(JSON.stringify({ message: 'deleted', affected: 1 }), { status: 200 })
+    );
+    await deleteInterviewQuestion('a1', 'q1');
+    const { url, options } = lastCall();
+    expect(url).toContain('/applications/a1/interview-questions/q1');
+    expect(options.method).toBe('DELETE');
   });
 
   it('createApplication POSTs the manual-add payload', async () => {

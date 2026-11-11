@@ -13,6 +13,7 @@ from sqlalchemy import (
     JSON,
     Boolean,
     Float,
+    ForeignKey,
     Index,
     Integer,
     String,
@@ -179,6 +180,20 @@ class Application(Base):
     position: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[str] = mapped_column(String, default=_utcnow_iso)
     updated_at: Mapped[str] = mapped_column(String, default=_utcnow_iso)
+
+
+class InterviewQuestion(Base):
+    """A manually recorded interview question for one tracker application."""
+
+    __tablename__ = "interview_questions"
+
+    question_id: Mapped[str] = mapped_column(String, primary_key=True)
+    application_id: Mapped[str] = mapped_column(
+        ForeignKey("applications.application_id", ondelete="CASCADE"),
+        index=True,
+    )
+    question: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[str] = mapped_column(String, default=_utcnow_iso)
 
 
 class ApiKey(Base):
