@@ -34,6 +34,7 @@ class ApplicationResponse(BaseModel):
     company: str | None = None
     role: str | None = None
     applied_at: str | None = None
+    interview_at: str | None = None
     notes: str | None = None
     position: int
     created_at: str
@@ -82,6 +83,7 @@ class ApplicationUpdate(BaseModel):
     company: str | None = None
     role: str | None = None
     applied_at: str | None = None
+    interview_at: str | None = None
 
     @field_validator("status")
     @classmethod

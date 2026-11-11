@@ -1461,6 +1461,7 @@
       "companyUnknown": "会社名不明",
       "roleUnknown": "役職名なし",
       "sharedResume": "共有された履歴書",
+      "interviewTime": "面接日時",
       "selectAria": "応募を選択",
       "dragAria": "ドラッグして並べ替え"
     },
@@ -1470,6 +1471,8 @@
       "notes": "メモ",
       "notesPlaceholder": "この応募についてのメモを追加…",
       "saveNotes": "メモを保存",
+      "interviewTime": "面接日時",
+      "saveInterviewTime": "面接日時を保存",
       "resumeUnavailable": "応募した履歴書は利用できなくなりました。",
       "loadFailed": "この応募を読み込めませんでした。",
       "editResume": "履歴書を編集"

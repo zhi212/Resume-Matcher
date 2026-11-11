@@ -13,12 +13,13 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Alert } from '@/components/ui/alert';
 import { StatusIndicator } from '@/components/ui/status-indicator';
 import { useTranslations } from '@/lib/i18n';
-import { formatDate } from '@/lib/format-date';
+import { formatDate, fromDateTimeLocalValue, toDateTimeLocalValue } from '@/lib/format-date';
 import { getApplicationDetail, updateApplication, type ApplicationDetail } from '@/lib/api/tracker';
 
 interface CardDetailModalProps {
@@ -41,6 +42,9 @@ export function CardDetailModal({
   const [notes, setNotes] = useState('');
   const [savingNotes, setSavingNotes] = useState(false);
   const [notesError, setNotesError] = useState<string | null>(null);
+  const [interviewTime, setInterviewTime] = useState('');
+  const [savingInterviewTime, setSavingInterviewTime] = useState(false);
+  const [interviewTimeError, setInterviewTimeError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open || !applicationId) {
@@ -55,6 +59,8 @@ export function CardDetailModal({
         setDetail(data);
         setNotes(data.notes ?? '');
         setNotesError(null);
+        setInterviewTime(toDateTimeLocalValue(data.interview_at));
+        setInterviewTimeError(null);
       })
       .catch(() => {
         if (!cancelled) setDetail(null);
@@ -88,6 +94,23 @@ export function CardDetailModal({
     }
   };
 
+  const handleSaveInterviewTime = async () => {
+    if (!applicationId) return;
+    setSavingInterviewTime(true);
+    setInterviewTimeError(null);
+    try {
+      const updated = await updateApplication(applicationId, {
+        interview_at: fromDateTimeLocalValue(interviewTime),
+      });
+      setDetail((current) => (current ? { ...current, ...updated } : current));
+      onUpdated();
+    } catch {
+      setInterviewTimeError(t('common.error'));
+    } finally {
+      setSavingInterviewTime(false);
+    }
+  };
+
   const resumeAvailable = Boolean(detail?.resume);
 
   return (
@@ -116,6 +139,37 @@ export function CardDetailModal({
                   </span>
                 )}
               </div>
+
+              {detail.status === 'interview' && (
+                <div className="space-y-1">
+                  <Label htmlFor="card-interview-time">{t('tracker.modal.interviewTime')}</Label>
+                  <Input
+                    id="card-interview-time"
+                    type="datetime-local"
+                    value={interviewTime}
+                    onChange={(e) => setInterviewTime(e.target.value)}
+                  />
+                  {interviewTimeError && <Alert tone="error">{interviewTimeError}</Alert>}
+                  <div className="flex justify-end">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={handleSaveInterviewTime}
+                      disabled={savingInterviewTime}
+                    >
+                      {savingInterviewTime ? (
+                        <>
+                          <SpinnerGap aria-hidden="true" className="animate-spin" />
+                          {t('common.saving')}
+                        </>
+                      ) : (
+                        t('tracker.modal.saveInterviewTime')
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              )}
 
               <div className="space-y-1">
                 <Label>{t('tracker.modal.jobDescription')}</Label>

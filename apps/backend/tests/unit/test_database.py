@@ -14,6 +14,7 @@ from sqlalchemy.engine import Engine
 
 from app.database import Database
 from app.db_engine import init_models_sync, make_sync_engine
+from app.models import Base
 
 
 @pytest.fixture
@@ -365,6 +366,55 @@ class TestApplications:
         remaining = await db.list_applications(status="rejected")
         assert len(remaining) == 1
         assert remaining[0]["position"] == 0  # renumbered after delete
+
+    async def test_interview_time_round_trips_and_survives_move(self, db):
+        card = await db.create_application(
+            job_id="j1", resume_id="r1", status="interview"
+        )
+        interview_at = "2026-03-20T10:30:00+08:00"
+        updated = await db.update_application(
+            card["application_id"], {"interview_at": interview_at}
+        )
+        assert updated is not None
+        assert updated["interview_at"] == interview_at
+
+        moved = await db.update_application(
+            card["application_id"], {"status": "applied"}
+        )
+        assert moved is not None
+        assert moved["interview_at"] == interview_at
+
+    def test_application_interview_time_migration_is_idempotent(self, tmp_path):
+        engine = make_sync_engine(tmp_path / "legacy-applications.db")
+        try:
+            Base.metadata.create_all(engine)
+            with engine.begin() as conn:
+                conn.exec_driver_sql(
+                    "ALTER TABLE applications DROP COLUMN interview_at"
+                )
+                conn.exec_driver_sql(
+                    "INSERT INTO applications "
+                    "(application_id, job_id, resume_id, status, position, created_at, updated_at) "
+                    "VALUES ('a1', 'j1', 'r1', 'applied', 0, 'now', 'now')"
+                )
+
+            init_models_sync(engine)
+            init_models_sync(engine)
+
+            with engine.begin() as conn:
+                names = [
+                    column["name"]
+                    for column in conn.exec_driver_sql(
+                        "PRAGMA table_info(applications)"
+                    ).mappings()
+                ]
+                interview_at = conn.exec_driver_sql(
+                    "SELECT interview_at FROM applications WHERE application_id = 'a1'"
+                ).scalar_one()
+            assert names.count("interview_at") == 1
+            assert interview_at is None
+        finally:
+            engine.dispose()
 
 
 class TestApiKeyStore:

@@ -29,6 +29,7 @@ export interface Application {
   company: string | null;
   role: string | null;
   applied_at: string | null;
+  interview_at: string | null;
   notes: string | null;
   position: number;
   created_at: string;
@@ -63,6 +64,7 @@ export interface ApplicationUpdate {
   company?: string;
   role?: string;
   applied_at?: string;
+  interview_at?: string | null;
 }
 
 export interface ApplicationActionResponse {
