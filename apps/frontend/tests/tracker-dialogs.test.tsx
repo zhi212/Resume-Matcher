@@ -1,10 +1,11 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { CardDetailModal } from '@/components/tracker/card-detail-modal';
 import { ManualAddApplicationDialog } from '@/components/tracker/manual-add-application-dialog';
 import {
   addInterviewQuestion,
   createApplication,
+  deleteInterviewQuestion,
   getApplicationDetail,
   updateApplication,
   type ApplicationDetail,
@@ -20,6 +21,7 @@ vi.mock('@/lib/api/tracker', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/lib/api/tracker')>()),
   getApplicationDetail: vi.fn(),
   addInterviewQuestion: vi.fn(),
+  deleteInterviewQuestion: vi.fn(),
   createApplication: vi.fn(),
   updateApplication: vi.fn(),
 }));
@@ -45,6 +47,7 @@ const detail: ApplicationDetail = {
   company: 'ACME',
   role: 'Engineer',
   applied_at: '2026-03-15T00:00:00Z',
+  interview_at: '2026-03-20T02:30:00.000Z',
   notes: null,
   position: 0,
   created_at: '2026-01-01T00:00:00Z',
@@ -174,5 +177,68 @@ describe('CardDetailModal', () => {
 
     expect(addInterviewQuestion).not.toHaveBeenCalled();
     expect(screen.getByText('tracker.interviewQuestions.validation')).toBeInTheDocument();
+  });
+
+  it('deletes a recorded question from the current application', async () => {
+    vi.mocked(getApplicationDetail).mockResolvedValue({
+      ...detail,
+      interview_questions: [
+        {
+          question_id: 'q1',
+          application_id: 'a1',
+          company: 'ACME',
+          role: 'Engineer',
+          question: 'Tell me about a conflict.',
+        },
+      ],
+    });
+    vi.mocked(deleteInterviewQuestion).mockResolvedValue({
+      message: 'deleted',
+      affected: 1,
+    });
+    render(<CardDetailModal applicationId="a1" open onOpenChange={vi.fn()} onUpdated={vi.fn()} />);
+
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'tracker.interviewQuestions.delete' })
+    );
+
+    await waitFor(() => expect(deleteInterviewQuestion).toHaveBeenCalledWith('a1', 'q1'));
+    await waitFor(() =>
+      expect(screen.queryByText('Tell me about a conflict.')).not.toBeInTheDocument()
+    );
+  });
+
+  it('saves the interview time through the existing partial update API', async () => {
+    vi.mocked(getApplicationDetail).mockResolvedValue(detail);
+    vi.mocked(updateApplication).mockResolvedValue({
+      ...detail,
+      interview_at: new Date('2026-03-21T10:30').toISOString(),
+    });
+    const onUpdated = vi.fn();
+    render(
+      <CardDetailModal applicationId="a1" open onOpenChange={vi.fn()} onUpdated={onUpdated} />
+    );
+
+    const field = await screen.findByLabelText('tracker.modal.interviewTime');
+    fireEvent.change(field, { target: { value: '2026-03-21T10:30' } });
+    fireEvent.click(screen.getByRole('button', { name: 'tracker.modal.saveInterviewTime' }));
+
+    await waitFor(() =>
+      expect(updateApplication).toHaveBeenCalledWith('a1', {
+        interview_at: new Date('2026-03-21T10:30').toISOString(),
+      })
+    );
+    expect(onUpdated).toHaveBeenCalled();
+  });
+
+  it('hides the interview time editor outside the interview stage', async () => {
+    vi.mocked(getApplicationDetail).mockResolvedValue({
+      ...detail,
+      status: 'applied',
+    });
+    render(<CardDetailModal applicationId="a1" open onOpenChange={vi.fn()} onUpdated={vi.fn()} />);
+
+    expect(await screen.findByText('tracker.columns.applied')).toBeInTheDocument();
+    expect(screen.queryByLabelText('tracker.modal.interviewTime')).not.toBeInTheDocument();
   });
 });

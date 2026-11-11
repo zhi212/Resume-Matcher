@@ -1461,6 +1461,7 @@
       "companyUnknown": "회사명 미상",
       "roleUnknown": "직무명 없음",
       "sharedResume": "공유된 이력서",
+      "interviewTime": "면접 일시",
       "selectAria": "지원 선택",
       "dragAria": "드래그하여 순서 변경"
     },
@@ -1472,10 +1473,12 @@
       "questionLabel": "면접 질문",
       "questionPlaceholder": "실제로 받은 질문을 기록하세요…",
       "submit": "질문 추가",
+      "delete": "삭제",
       "empty": "아직 면접 질문이 없습니다",
       "emptyDescription": "지원 건을 열어 실제로 받은 질문을 기록하세요.",
       "loadFailed": "면접 질문을 불러오지 못했습니다.",
       "createFailed": "면접 질문을 추가하지 못했습니다.",
+      "deleteFailed": "면접 질문을 삭제하지 못했습니다.",
       "validation": "질문을 입력하세요."
     },
     "modal": {
@@ -1484,6 +1487,8 @@
       "notes": "메모",
       "notesPlaceholder": "이 지원에 대한 메모를 추가하세요…",
       "saveNotes": "메모 저장",
+      "interviewTime": "면접 일시",
+      "saveInterviewTime": "면접 일시 저장",
       "resumeUnavailable": "지원에 사용한 이력서를 더 이상 사용할 수 없습니다.",
       "loadFailed": "이 지원 정보를 불러올 수 없습니다.",
       "editResume": "이력서 편집"

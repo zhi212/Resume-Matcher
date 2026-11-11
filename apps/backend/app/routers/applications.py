@@ -146,6 +146,34 @@ async def create_interview_question(
     return InterviewQuestionResponse(**question)
 
 
+@router.delete(
+    "/{application_id}/interview-questions/{question_id}",
+    response_model=ApplicationActionResponse,
+)
+async def delete_interview_question(
+    application_id: str, question_id: str
+) -> ApplicationActionResponse:
+    """Delete one recorded question from an application."""
+    try:
+        deleted = await db.delete_interview_question(application_id, question_id)
+    except DatabaseBusyError:
+        raise
+    except Exception as e:
+        logger.error(
+            "Failed to delete interview question %s for %s: %s",
+            question_id,
+            application_id,
+            e,
+        )
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to delete interview question. Please try again.",
+        )
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Interview question not found")
+    return ApplicationActionResponse(message="Interview question deleted", affected=1)
+
+
 @router.get("/{application_id}", response_model=ApplicationDetailResponse)
 async def get_application_detail(application_id: str) -> ApplicationDetailResponse:
     """Get a card with its embedded JD and applied resume (one round-trip).
@@ -206,7 +234,7 @@ async def bulk_update_applications(
 async def update_application(
     application_id: str, request: ApplicationUpdate
 ) -> ApplicationResponse:
-    """Update a card (status/position/notes/company/role/applied_at)."""
+    """Update a card (status/position/notes/company/role/applied_at/interview_at)."""
     updates = request.model_dump(exclude_unset=True)
     # Normalize the enum to its stable string value for the data layer.
     if "status" in updates and updates["status"] is not None:

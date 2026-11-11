@@ -1461,6 +1461,7 @@
       "companyUnknown": "未知公司",
       "roleUnknown": "未命名职位",
       "sharedResume": "共享简历",
+      "interviewTime": "面试时间",
       "selectAria": "选择申请",
       "dragAria": "拖动以重新排序"
     },
@@ -1472,10 +1473,12 @@
       "questionLabel": "面试题",
       "questionPlaceholder": "记录一道实际遇到的面试题……",
       "submit": "添加面试题",
+      "delete": "删除",
       "empty": "暂无面试题",
       "emptyDescription": "打开一条申请记录，添加实际遇到的面试题。",
       "loadFailed": "无法加载面试题。",
       "createFailed": "无法添加该面试题。",
+      "deleteFailed": "无法删除该面试题。",
       "validation": "请输入面试题。"
     },
     "modal": {
@@ -1484,6 +1487,8 @@
       "notes": "备注",
       "notesPlaceholder": "为此申请添加备注……",
       "saveNotes": "保存备注",
+      "interviewTime": "面试时间",
+      "saveInterviewTime": "保存面试时间",
       "resumeUnavailable": "所投递的简历已不可用。",
       "loadFailed": "无法加载此申请。",
       "editResume": "编辑简历"

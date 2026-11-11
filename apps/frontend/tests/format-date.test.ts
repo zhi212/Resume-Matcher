@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { formatDate } from '@/lib/format-date';
+import { formatDate, fromDateTimeLocalValue, toDateTimeLocalValue } from '@/lib/format-date';
 
 describe('formatDate', () => {
   it('formats in the UI locale', () => {
@@ -74,5 +74,21 @@ describe('formatDate: date-only values', () => {
 
   it('still reads a full ISO timestamp as the instant it names', async () => {
     expect(await formatIn('America/Los_Angeles', '2025-01-02T03:00:00Z')).toBe('Jan 1, 2025');
+  });
+});
+
+describe('datetime-local conversion', () => {
+  it('round-trips a local datetime through the persisted ISO value', () => {
+    const local = '2026-03-05T14:30';
+    const stored = fromDateTimeLocalValue(local);
+    expect(stored).not.toBeNull();
+    expect(new Date(stored as string).getTime()).toBe(new Date(local).getTime());
+    expect(toDateTimeLocalValue(stored)).toBe(local);
+  });
+
+  it('treats an empty input as clearing the field', () => {
+    expect(fromDateTimeLocalValue('')).toBeNull();
+    expect(toDateTimeLocalValue(null)).toBe('');
+    expect(toDateTimeLocalValue('not a date')).toBe('');
   });
 });

@@ -29,6 +29,7 @@ export interface Application {
   company: string | null;
   role: string | null;
   applied_at: string | null;
+  interview_at: string | null;
   notes: string | null;
   position: number;
   created_at: string;
@@ -76,6 +77,7 @@ export interface ApplicationUpdate {
   company?: string;
   role?: string;
   applied_at?: string;
+  interview_at?: string | null;
 }
 
 export interface ApplicationActionResponse {
@@ -155,6 +157,16 @@ export async function addInterviewQuestion(
     { question }
   );
   return asJson<TrackerInterviewQuestion>(res, 'Failed to add interview question');
+}
+
+export async function deleteInterviewQuestion(
+  applicationId: string,
+  questionId: string
+): Promise<ApplicationActionResponse> {
+  const res = await apiDelete(
+    `/applications/${encodeURIComponent(applicationId)}/interview-questions/${encodeURIComponent(questionId)}`
+  );
+  return asJson<ApplicationActionResponse>(res, 'Failed to delete interview question');
 }
 
 // List every recorded interview question, independent of visible board columns.

@@ -44,6 +44,16 @@ export function ApplicationCard({
 
   const company = application.company?.trim();
   const role = application.role?.trim();
+  const interviewTime =
+    application.status === 'interview' && application.interview_at
+      ? formatDate(application.interview_at, locale, {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        })
+      : '';
 
   return (
     <div ref={setNodeRef} style={style} className="transition-opacity">
@@ -72,6 +82,11 @@ export function ApplicationCard({
             {application.applied_at && (
               <p className="mt-1 font-mono text-xs uppercase tracking-wide text-steel tabular-nums">
                 {formatDate(application.applied_at, locale)}
+              </p>
+            )}
+            {interviewTime && (
+              <p className="mt-1 font-mono text-xs text-primary tabular-nums">
+                {t('tracker.card.interviewTime')}: {interviewTime}
               </p>
             )}
             {sharedResume && (

@@ -1461,6 +1461,7 @@
       "companyUnknown": "Empresa desconocida",
       "roleUnknown": "Puesto sin título",
       "sharedResume": "Currículum compartido",
+      "interviewTime": "Hora de la entrevista",
       "selectAria": "Seleccionar candidatura",
       "dragAria": "Arrastra para reordenar"
     },
@@ -1472,10 +1473,12 @@
       "questionLabel": "Pregunta de entrevista",
       "questionPlaceholder": "Registra una pregunta que te hicieron…",
       "submit": "Añadir pregunta",
+      "delete": "Eliminar",
       "empty": "Aún no hay preguntas",
       "emptyDescription": "Abre una candidatura y registra una pregunta que te hicieron.",
       "loadFailed": "No se pudieron cargar las preguntas.",
       "createFailed": "No se pudo añadir la pregunta.",
+      "deleteFailed": "No se pudo eliminar la pregunta.",
       "validation": "Escribe una pregunta."
     },
     "modal": {
@@ -1484,6 +1487,8 @@
       "notes": "Notas",
       "notesPlaceholder": "Añade notas sobre esta candidatura…",
       "saveNotes": "Guardar notas",
+      "interviewTime": "Hora de la entrevista",
+      "saveInterviewTime": "Guardar hora de la entrevista",
       "resumeUnavailable": "El currículum enviado ya no está disponible.",
       "loadFailed": "No se pudo cargar esta candidatura.",
       "editResume": "Editar currículum"

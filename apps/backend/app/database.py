@@ -297,6 +297,7 @@ class Database:
             "company": row.company,
             "role": row.role,
             "applied_at": row.applied_at,
+            "interview_at": row.interview_at,
             "notes": row.notes,
             "position": row.position,
             "created_at": row.created_at,
@@ -1359,7 +1360,7 @@ class Database:
             new_status = updates.get("status", old_status)
             target_position = updates.get("position", None)
 
-            for key in ("company", "role", "applied_at", "notes"):
+            for key in ("company", "role", "applied_at", "interview_at", "notes"):
                 if key in updates:
                     setattr(row, key, updates[key])
 
@@ -1512,6 +1513,20 @@ class Database:
                 self._interview_question_to_dict(row, company, role)
                 for row, company, role in result.all()
             ]
+
+    async def delete_interview_question(
+        self, application_id: str, question_id: str
+    ) -> bool:
+        """Delete one question scoped to its application."""
+        async with self._write_session() as session:
+            result = await session.execute(
+                delete(InterviewQuestion).where(
+                    InterviewQuestion.application_id == application_id,
+                    InterviewQuestion.question_id == question_id,
+                )
+            )
+            await session.commit()
+            return bool(result.rowcount)
 
     # -- Encrypted API key store (sync; read on the LLM hot path) -----------
 

@@ -21,7 +21,9 @@ const application = {
   application_id: 'a1',
   company: 'Acme',
   role: 'Engineer',
+  status: 'interview',
   applied_at: null,
+  interview_at: '2026-03-05T12:00:00Z',
 } as Application;
 
 function renderCard(props: { selected: boolean; sharedResume?: boolean }) {
@@ -55,5 +57,10 @@ describe('ApplicationCard', () => {
     const badge = screen.getByText('tracker.card.sharedResume');
     expect(badge.querySelector('svg')).toHaveClass('size-4');
     expect(badge.querySelector('svg')).not.toHaveClass('size-3');
+  });
+
+  it('shows the interview date and time on an interview card', () => {
+    renderCard({ selected: false });
+    expect(screen.getByText(/tracker\.card\.interviewTime: Mar 5, 2026/)).toBeInTheDocument();
   });
 });

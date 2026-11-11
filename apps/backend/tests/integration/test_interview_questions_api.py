@@ -118,6 +118,32 @@ class TestInterviewQuestions:
         assert blank.status_code == 422
         assert missing.status_code == 404
 
+    async def test_delete_one_question(self, isolated_db: Database) -> None:
+        card = await _seed_card(
+            isolated_db,
+            job_id="job-1",
+            resume_id="resume-1",
+            company="Acme",
+            role="Engineer",
+        )
+        async with _client() as client:
+            created = await client.post(
+                f"/api/v1/applications/{card['application_id']}/interview-questions",
+                json={"question": "Delete me"},
+            )
+            question_id = created.json()["question_id"]
+            deleted = await client.delete(
+                f"/api/v1/applications/{card['application_id']}/interview-questions/{question_id}"
+            )
+            deleted_again = await client.delete(
+                f"/api/v1/applications/{card['application_id']}/interview-questions/{question_id}"
+            )
+
+        assert deleted.status_code == 200
+        assert deleted.json()["affected"] == 1
+        assert deleted_again.status_code == 404
+        assert await isolated_db.list_interview_questions() == []
+
     async def test_application_deletion_cascades_questions(
         self, isolated_db: Database
     ) -> None:
